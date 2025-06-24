@@ -10,9 +10,9 @@ class HybridStorage(object):
     def get_image_size(self):
         return self._images._height, self._images._width
 
-    def make_interframe_events_iterator(self, number_of_skips):
+    def make_interframe_events_iterator(self, number_of_skips, bias):
         timestamps = list(self.make_boundary_timestamps_iterator(number_of_skips))
-        return self._events.make_sequential_iterator(timestamps)
+        return self._events.make_sequential_iterator(timestamps, bias)
 
     def make_boundary_timestamps_iterator(self, number_of_skips):
         return iterator_modifiers.make_skip_iterator(
@@ -36,7 +36,7 @@ class HybridStorage(object):
         )
 
     @classmethod
-    def from_folders_jit(
+    def from_folders_jit( # jit是啥
             cls,
             event_folder,
             image_folder,
@@ -69,16 +69,16 @@ class HybridStorage(object):
             cropping_data=None,
             timestamps_file="timestamp.txt"
     ):
-        images = image_sequence.ImageSequence.from_folder(
+        images = image_sequence.ImageSequence.from_folder( # 解析图像
             folder=image_folder,
             image_file_template=image_file_template,
             timestamps_file=timestamps_file
         )
-        events = event.EventSequence.from_folder(
+        events = event.EventSequence.from_folder( # 解析事件
             folder=event_folder,
             image_height=images._height,
             image_width=images._width,
             event_file_template=event_file_template
         )
 
-        return cls(images, events)
+        return cls(images, events) # what is cls

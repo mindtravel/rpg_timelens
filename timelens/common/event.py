@@ -4,12 +4,17 @@ import numpy as np
 from PIL import Image
 import tqdm
 from timelens.common import os_tools #, visualization_tools
+# from run_timelens import BIAS
 
 TIMESTAMP_COLUMN = 2
 X_COLUMN = 0
 Y_COLUMN = 1
 POLARITY_COLUMN = 3
 
+# TEST = 0 # completely aligned
+# TEST = 1 # slightly disaligned
+# TEST = 2 # disaligned
+# TEST = 3 # extremely disaligned
 
 def save_events(events, file):
     """Save events to ".npy" file.
@@ -81,8 +86,9 @@ class EventJITSequence(object):
         self._image_width = width
 
     def make_sequential_iterator(self, timestamps):
-        ev_seq_iter = iter(self._evseq)
-        curbuf = next(ev_seq_iter)
+        ev_seq_iter = iter(self._evseq) # iter用于创建一个迭代器对象
+        curbuf = next(ev_seq_iter)# 为什么要用curbuf: 可能是因为curbuf能用缓冲区一组一组地处理事件
+        # print("test")
         for start_timestamp, end_timestamp in zip(timestamps[:-1], timestamps[1:]):
             events = []
             #search for first event
@@ -136,7 +142,7 @@ class EventSequence(object):
                       rows correspond to individual events and columns to event
                       features (x, y, timestamp, polarity)
 
-            image_height, image_width: widht and height of the event sensor.
+            image_height, image_width: width and height of the event sensor.
                                        Note, that it can not be inferred
                                        directly from the events, because
                                        events are spares.
@@ -145,7 +151,7 @@ class EventSequence(object):
                                   them from the events. Note, that it can not be
                                   inferred from the events when there is no motion.
         """
-        self._features = features
+        self._features = features 
         self._image_width = image_width
         self._image_height = image_height
         self._start_time = (
@@ -195,7 +201,7 @@ class EventSequence(object):
             self._image_height - 1 - self._features[:, Y_COLUMN]
         )
 
-    def reverse(self):
+    def reverse(self):# 竟然有这个功能
         """Reverse temporal direction of the event stream.
 
         Polarities of the events reversed.
@@ -372,7 +378,7 @@ class EventSequence(object):
             left_events, right_events = self.split_in_two(split_timestamp)
             yield left_events, right_events
 
-    def make_sequential_iterator(self, timestamps):
+    def make_sequential_iterator(self, timestamps, bias):
         """Returns iterator over sub-sequences of events.
 
         Args:
@@ -384,11 +390,20 @@ class EventSequence(object):
         """
         if len(timestamps) < 2:
             raise ValueError("There should be at least two timestamps")
+
+        for i in range(len(timestamps)):
+            timestamps[i] -= bias
+            # print(bias)
+        
         start_timestamp = timestamps[0]
         start_index = self._advance_index_to_timestamp(start_timestamp)
+        
+        # print(start_index)
 
         for end_timestamp in timestamps[1:]:
             end_index = self._advance_index_to_timestamp(end_timestamp, start_index)
+            # print(end_index)
+            
             self._features[start_index:end_index, :].size == 0
             yield EventSequence(
                 features=np.copy(self._features[start_index:end_index, :]),
@@ -417,7 +432,7 @@ class EventSequence(object):
     def from_folder(
         cls, folder, image_height, image_width, event_file_template="{:06d}.npz"
     ):
-        filename_iterator = os_tools.make_glob_filename_iterator(
+        filename_iterator = os_tools.make_glob_filename_iterator(# 有序迭代器
             os.path.join(folder, event_file_template)
         )
         filenames = [filename for filename in filename_iterator]

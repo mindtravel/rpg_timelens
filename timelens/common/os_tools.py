@@ -4,7 +4,7 @@ import re
 
 import numpy as np
 
-def make_glob_filename_iterator(file_template):
+def make_glob_filename_iterator(file_template):# 排序后的文件名称
     return sorted(glob.glob(file_template))
 
 def find_leaf_folders(root_folder):

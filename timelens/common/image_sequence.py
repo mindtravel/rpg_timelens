@@ -34,7 +34,7 @@ class ImageSequence(object):
         self._timestamps = timestamps
         self._width, self._height = self[0].size
 
-    def __len__(self):
+    def __len__(self): # len方法
         return len(self._images)
 
     def skip_and_repeat(self, number_of_skips, number_of_frames_to_insert):
@@ -56,7 +56,7 @@ class ImageSequence(object):
         os_tools.list_to_file(
         os.path.join(folder, "timestamp.txt"), [str(timestamp) for timestamp in self._timestamps])
 
-    def to_video(self, filename):
+    def to_video(self, filename): # 似乎是将图片序列保存成视频
         """Saves to video."""
         fourcc = cv2.VideoWriter_fourcc(*"XVID")
         video = cv2.VideoWriter(filename, fourcc, 30.0, (self._width, self._height))
@@ -64,7 +64,7 @@ class ImageSequence(object):
             video.write(cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR))
         video.release()
 
-    def __getitem__(self, index):
+    def __getitem__(self, index): # 按id读取图像
         """Return example by its index."""
         if index >= len(self):
             raise IndexError
@@ -76,12 +76,10 @@ class ImageSequence(object):
     ):
         filename_iterator = os_tools.make_glob_filename_iterator(
             os.path.join(folder, image_file_template)
-        )
-        filenames = [f for f in filename_iterator]
-
+        )# 生成迭代器
+        filenames = [f for f in filename_iterator] # 生成文件名称
         images = ImageJITReader(filenames)
         timestamps = np.loadtxt(os.path.join(folder, timestamps_file)).tolist()
-
         return cls(images, timestamps)
 
     @classmethod

@@ -1,2 +1,6 @@
 timelens/__pycache__/
 timelens/common/__pycache__/
+*.sh
+*.bin
+example
+*.pyc
